@@ -86,7 +86,7 @@ In collaboration with OpenAI's ChatGPT, this script was brought to life, combini
 
 ## License
 
-This project is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) license. This allows for the redistribution, modification, and use of this work non-commercially as long as appropriate credit is given to the author, Hugo Escalpelo, and any derivative works carry the same license.
+This project is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) license. This allows for the redistribution, modification, and use of this work non-commercially as long as appropriate credit is given to the author, Hugo Escalpelo, and any derivative works carry the same license. 
 
 For more information, see [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 
