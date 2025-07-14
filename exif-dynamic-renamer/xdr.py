@@ -30,8 +30,13 @@ def run_exiftool_batch(files, batch_size=500, corrupted_dir=None):
             data.extend(batch_data)
             print(f"✅ Lote {batch_idx + 1}/{total_batches} completado ({len(batch_data)} archivos).")
         except Exception as e:
-            print(f"[ERROR] Error en lote {batch_idx + 1}: {e}")
-            for file in batch_files:
+            print(f"\n[ERROR] Lote {batch_idx + 1}/{total_batches} fallido. Reintentando archivos individualmente…")
+
+            for idx, file in enumerate(batch_files, 1):
+                percent = idx / len(batch_files)
+                bar = "█" * int(percent * 30) + "-" * (30 - int(percent * 30))
+                print(f"\rProcesando individualmente [{bar}] {percent*100:.1f}% ({idx}/{len(batch_files)})", end="")
+
                 try:
                     result = subprocess.run([
                         "exiftool",
@@ -45,13 +50,14 @@ def run_exiftool_batch(files, batch_size=500, corrupted_dir=None):
                     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True, timeout=30)
                     file_data = json.loads(result.stdout)
                     data.extend(file_data)
-                except Exception as fe:
-                    print(f"❌ Archivo corrupto o con error: {file.name} -> {fe}")
+                except Exception:
+                    print(f"\n❌ Archivo corrupto movido: {file.name}")
                     if corrupted_dir:
                         corrupted_dir.mkdir(exist_ok=True)
                         shutil.move(str(file), str(corrupted_dir / file.name))
+            print(f"\n✅ Lote {batch_idx + 1}/{total_batches} procesado con archivos corruptos aislados.")
 
-    print(f"✅ Lectura completada: {len(data)} archivos procesados.")
+    print(f"\n✅ Lectura completada: {len(data)} archivos procesados.")
     return data
 
 
