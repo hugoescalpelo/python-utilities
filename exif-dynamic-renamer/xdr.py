@@ -32,10 +32,24 @@ def run_exiftool_batch(files, batch_size=500, corrupted_dir=None):
         except Exception as e:
             print(f"[ERROR] Error en lote {batch_idx + 1}: {e}")
             for file in batch_files:
-                print(f"❌ Moviendo archivo problemático: {file.name}")
-                if corrupted_dir:
-                    corrupted_dir.mkdir(exist_ok=True)
-                    shutil.move(str(file), str(corrupted_dir / file.name))
+                try:
+                    result = subprocess.run([
+                        "exiftool",
+                        "-j",
+                        "-DateTimeOriginal",
+                        "-CreateDate",
+                        "-Model",
+                        "-MediaCreateDate",
+                        "-FileModifyDate",
+                        str(file)
+                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True, timeout=30)
+                    file_data = json.loads(result.stdout)
+                    data.extend(file_data)
+                except Exception as fe:
+                    print(f"❌ Archivo corrupto o con error: {file.name} -> {fe}")
+                    if corrupted_dir:
+                        corrupted_dir.mkdir(exist_ok=True)
+                        shutil.move(str(file), str(corrupted_dir / file.name))
 
     print(f"✅ Lectura completada: {len(data)} archivos procesados.")
     return data
@@ -128,7 +142,7 @@ def process_directory(input_dir, dry_run=False, override_model=None, batch_size=
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="EXIF Dynamic Renamer optimizado usando batch de exiftool con detección de colisiones, lectura por lotes y manejo de archivos corruptos")
+    parser = argparse.ArgumentParser(description="EXIF Dynamic Renamer optimizado con lectura por lotes, manejo de colisiones y archivos corruptos")
     parser.add_argument("--input", required=True, help="Carpeta a procesar")
     parser.add_argument("--dry-run", action="store_true", help="Mostrar cambios sin aplicar")
     parser.add_argument("--override-model", type=str, help="Modelo de cámara para todos los archivos sin modelo")
