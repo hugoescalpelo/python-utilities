@@ -104,9 +104,9 @@ def process_directory(input_dir, dry_run=False, override_model=None, batch_size=
     input_path = Path(input_dir)
     corrupted_dir = input_path / "corrupted"
     files = [
-    f for f in input_path.rglob("*")
-    if f.is_file() and "corrupted" not in f.parts
-]
+        f for f in input_path.rglob("*")
+        if f.is_file() and "corrupted" not in f.parts
+    ]
     print(f"📂 Detectados {len(files)} archivos para procesar.")
 
     exif_data = run_exiftool_batch(files, batch_size=batch_size, corrupted_dir=corrupted_dir)
@@ -128,13 +128,11 @@ def process_directory(input_dir, dry_run=False, override_model=None, batch_size=
             date_str = datetime.datetime.fromtimestamp(src_file.stat().st_mtime).strftime("%Y:%m:%d %H:%M:%S")
 
         if not model or model.strip() == "":
-            folder_name = src_file.parent.name
             if override_model:
                 model = sanitize_model(override_model)
             else:
-                print(f"\n[UNKNOWN MODEL] {src_file.name}")
-                user_input = input(f"Modelo para {src_file.name} [default: {folder_name}]: ").strip()
-                model = sanitize_model(user_input or folder_name)
+                folder_name = src_file.parent.name
+                model = sanitize_model(folder_name)
         else:
             model = sanitize_model(model)
 
