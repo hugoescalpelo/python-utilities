@@ -103,7 +103,10 @@ def print_progress(idx, total, bar_length=40):
 def process_directory(input_dir, dry_run=False, override_model=None, batch_size=500):
     input_path = Path(input_dir)
     corrupted_dir = input_path / "corrupted"
-    files = [f for f in input_path.rglob("*") if f.is_file()]
+    files = [
+    f for f in input_path.rglob("*")
+    if f.is_file() and "corrupted" not in f.parts
+]
     print(f"📂 Detectados {len(files)} archivos para procesar.")
 
     exif_data = run_exiftool_batch(files, batch_size=batch_size, corrupted_dir=corrupted_dir)
