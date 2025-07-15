@@ -64,7 +64,7 @@ def run_exiftool_batch(files, batch_size=500, corrupted_dir=None):
 def sanitize_model(model, fallback="UnknownModel"):
     if not model:
         return fallback
-    model = model.replace(" ", "_")
+    model = str(model).replace(" ", "_")
     model = "".join(c for c in model if c.isalnum() or c == "_")
     return model
 
@@ -126,6 +126,8 @@ def process_directory(input_dir, dry_run=False, override_model=None, batch_size=
         if not date_str:
             print(f"\n[WARNING] Sin fecha en {src_file.name}, usando fecha de modificación")
             date_str = datetime.datetime.fromtimestamp(src_file.stat().st_mtime).strftime("%Y:%m:%d %H:%M:%S")
+
+        model = str(model) if model is not None else ""
 
         if not model or model.strip() == "":
             if override_model:
