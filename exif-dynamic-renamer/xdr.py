@@ -69,10 +69,29 @@ def sanitize_model(model, fallback="UnknownModel"):
     return model
 
 
-def get_best_date(item):
+def get_best_date(item, fallback_path=None):
+    date_strings = []
     for key in ["DateTimeOriginal", "CreateDate", "MediaCreateDate", "FileModifyDate"]:
         if key in item:
-            return item[key]
+            date_strings.append(item[key])
+
+    date_objs = []
+    for d in date_strings:
+        try:
+            date_objs.append(datetime.datetime.strptime(d, "%Y:%m:%d %H:%M:%S"))
+        except:
+            pass
+
+    if fallback_path:
+        try:
+            stat = fallback_path.stat()
+            date_objs.append(datetime.datetime.fromtimestamp(stat.st_ctime))
+            date_objs.append(datetime.datetime.fromtimestamp(stat.st_mtime))
+        except:
+            pass
+
+    if date_objs:
+        return min(date_objs).strftime("%Y:%m:%d %H:%M:%S")
     return None
 
 
@@ -120,12 +139,8 @@ def process_directory(input_dir, dry_run=False, override_model=None, batch_size=
 
     for idx, item in enumerate(exif_data, 1):
         src_file = Path(item.get("SourceFile"))
-        date_str = get_best_date(item)
+        date_str = get_best_date(item, fallback_path=src_file)
         model = item.get("Model")
-
-        if not date_str:
-            print(f"\n[WARNING] Sin fecha en {src_file.name}, usando fecha de modificación")
-            date_str = datetime.datetime.fromtimestamp(src_file.stat().st_mtime).strftime("%Y:%m:%d %H:%M:%S")
 
         model = str(model) if model is not None else ""
 
@@ -151,7 +166,7 @@ def process_directory(input_dir, dry_run=False, override_model=None, batch_size=
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="EXIF Dynamic Renamer optimizado con lectura por lotes, manejo de colisiones y archivos corruptos")
+    parser = argparse.ArgumentParser(description="EXIF Dynamic Renamer con prioridad a la fecha más antigua")
     parser.add_argument("--input", required=True, help="Carpeta a procesar")
     parser.add_argument("--dry-run", action="store_true", help="Mostrar cambios sin aplicar")
     parser.add_argument("--override-model", type=str, help="Modelo de cámara para todos los archivos sin modelo")
